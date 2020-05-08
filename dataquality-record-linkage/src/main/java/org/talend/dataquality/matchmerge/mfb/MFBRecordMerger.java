@@ -12,6 +12,13 @@
 // ============================================================================
 package org.talend.dataquality.matchmerge.mfb;
 
+import org.apache.commons.lang.StringUtils;
+import org.talend.dataquality.matchmerge.Attribute;
+import org.talend.dataquality.matchmerge.AttributeValues;
+import org.talend.dataquality.matchmerge.Record;
+import org.talend.dataquality.record.linkage.record.IRecordMerger;
+import org.talend.dataquality.record.linkage.utils.SurvivorShipAlgorithmEnum;
+
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -19,13 +26,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-import org.talend.dataquality.matchmerge.Attribute;
-import org.talend.dataquality.matchmerge.AttributeValues;
-import org.talend.dataquality.matchmerge.Record;
-import org.talend.dataquality.record.linkage.record.IRecordMerger;
-import org.talend.dataquality.record.linkage.utils.SurvivorShipAlgorithmEnum;
 
 public class MFBRecordMerger implements IRecordMerger {
 
@@ -67,17 +67,10 @@ public class MFBRecordMerger implements IRecordMerger {
             String rightValue = rightAttribute.getValue();
             // Keep values from original records (if any)
             AttributeValues<String> leftValues = leftAttribute.getValues();
-            if (leftValues.size() > 0) {
-                mergedAttribute.getValues().merge(leftValues);
-            } else {
-                mergedAttribute.getValues().get(leftValue).increment();
-            }
+            mergeOriginalValues(i, mergedAttribute, leftValue, leftValues);
             AttributeValues<String> rightValues = rightAttribute.getValues();
-            if (rightValues.size() > 0) {
-                mergedAttribute.getValues().merge(rightValues);
-            } else {
-                mergedAttribute.getValues().get(rightValue).increment();
-            }
+            mergeOriginalValues(i, mergedAttribute, rightValue, rightValues);
+
             // Merge values
             if (leftValue == null && rightValue == null) {
                 mergedAttribute.setValue(null);
@@ -133,6 +126,18 @@ public class MFBRecordMerger implements IRecordMerger {
             mergedRecord.setGroupId(record2.getGroupId());
         }
         return mergedRecord;
+    }
+
+    private void mergeOriginalValues(int i, Attribute mergedAttribute, String leftValue,
+            AttributeValues<String> leftValues) {
+        if (leftValues.size() > 0) {
+            mergedAttribute.getValues().merge(leftValues);
+            if (SurvivorShipAlgorithmEnum.CONCATENATE.equals(typeMergeTable[i])) {
+                mergedAttribute.getValues().get(leftValue).increment();
+            }
+        } else {
+            mergedAttribute.getValues().get(leftValue).increment();
+        }
     }
 
     /**

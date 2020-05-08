@@ -18,6 +18,10 @@ N/A
 ### Security
 N/A
 
+## [8.1.1] - 2020-05-08
+### Fixed
+- fix(TDQ-18347): fix MFB merger: merge the main value when CONCATENATE 
+
 ## [8.1.0] - 2020-03-13
 
 ## [8.0.0] - 2020-02-03
