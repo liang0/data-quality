@@ -128,15 +128,15 @@ public class MFBRecordMerger implements IRecordMerger {
         return mergedRecord;
     }
 
-    private void mergeOriginalValues(int i, Attribute mergedAttribute, String leftValue,
-            AttributeValues<String> leftValues) {
-        if (leftValues.size() > 0) {
-            mergedAttribute.getValues().merge(leftValues);
+    private void mergeOriginalValues(int i, Attribute mergedAttribute, String originalValue,
+            AttributeValues<String> originalValues) {
+        if (originalValues.size() > 0) {
+            mergedAttribute.getValues().merge(originalValues);
             if (SurvivorShipAlgorithmEnum.CONCATENATE.equals(typeMergeTable[i])) {
-                mergedAttribute.getValues().get(leftValue).increment();
+                mergedAttribute.getValues().get(originalValue).increment();
             }
         } else {
-            mergedAttribute.getValues().get(leftValue).increment();
+            mergedAttribute.getValues().get(originalValue).increment();
         }
     }
 
