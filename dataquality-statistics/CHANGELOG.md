@@ -14,7 +14,7 @@ N/A
 ### Deprecated
 N/A
 ### Fixed
-N/A
+ - fix(TDQ-18441): support 2 additional ISO-8601 date patterns
 ### Security
 N/A
 

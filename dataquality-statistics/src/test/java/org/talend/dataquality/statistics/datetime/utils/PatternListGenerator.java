@@ -278,8 +278,10 @@ public class PatternListGenerator {
         // 4. ISO_INSTANT
         patternList.add(new LocaledPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US, "ISO_INSTANT", true));
         patternList.add(new LocaledPattern("yyyy-MM-dd'T'HH:mm:ss,SSS'Z'", Locale.US, "ISO_INSTANT", true)); // TDQ-16796
+        patternList.add(new LocaledPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US, "ISO_INSTANT", true)); // TDQ-18441
         patternList.add(new LocaledPattern("yyyy-MM-dd HH:mm:ss.SSS'Z'", Locale.US, "ISO_INSTANT", true));
         patternList.add(new LocaledPattern("yyyy-MM-dd HH:mm:ss,SSS'Z'", Locale.US, "ISO_INSTANT", true)); // TDQ-16796
+        patternList.add(new LocaledPattern("yyyy-MM-dd HH:mm:ss'Z'", Locale.US, "ISO_INSTANT", true)); // TDQ-18441
         // 5. ISO_LOCAL_DATE (removed because they are duplicated with existing patterns)
         // 6. ISO_LOCAL_DATE_TIME (removed because they are duplicated with existing patterns)
         // 7. ISO_OFFSET_DATE

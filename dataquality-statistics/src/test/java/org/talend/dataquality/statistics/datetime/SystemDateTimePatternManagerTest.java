@@ -52,6 +52,18 @@ public class SystemDateTimePatternManagerTest {
     }
 
     @Test
+    public void testTDC_4108() {
+        // already supported
+        assertTrue(SystemDateTimePatternManager.isDate("2020-04-29T08:49:29")); //$NON-NLS-1$
+        assertTrue(SystemDateTimePatternManager.isDate("2020-04-29 08:49:29")); //$NON-NLS-1$
+        assertTrue(SystemDateTimePatternManager.isDate("2020-04-29T08:49:29.000Z")); //$NON-NLS-1$
+        assertTrue(SystemDateTimePatternManager.isDate("2020-04-29 08:49:29.000Z")); //$NON-NLS-1$
+        // newly supported
+        assertTrue(SystemDateTimePatternManager.isDate("2020-04-29T08:49:29Z")); //$NON-NLS-1$
+        assertTrue(SystemDateTimePatternManager.isDate("2020-04-29 08:49:29Z")); //$NON-NLS-1$
+    }
+
+    @Test
     public void datesWithThaiBuddhistChronology() {
         assertTrue(SystemDateTimePatternManager.isDate("1345-02-28 พ.ศ.")); //$NON-NLS-1$
         assertTrue(SystemDateTimePatternManager.isDate("1345-02-28 ปีก่อนคริสต์กาลที่")); //$NON-NLS-1$
