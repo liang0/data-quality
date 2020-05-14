@@ -31,6 +31,7 @@ import org.talend.dataquality.record.linkage.constant.TokenizedResolutionMethod;
 import org.talend.dataquality.record.linkage.grouping.swoosh.DQMFBRecordMatcher;
 import org.talend.dataquality.record.linkage.grouping.swoosh.RichRecord;
 import org.talend.dataquality.record.linkage.grouping.swoosh.SurvivorShipAlgorithmParams;
+import org.talend.dataquality.record.linkage.grouping.swoosh.SurvivorshipUtils;
 import org.talend.dataquality.record.linkage.record.CombinedRecordMatcher;
 import org.talend.dataquality.record.linkage.record.IRecordMatcher;
 import org.talend.dataquality.record.linkage.record.RecordMatcherFactory;
@@ -536,6 +537,7 @@ public abstract class AbstractRecordGrouping<TYPE> implements IRecordGrouping<TY
         String[][] algorithmName = new String[recordSize][2];
         String[] arrMatchHandleNull = new String[recordSize];
         String[] customizedJarPath = new String[recordSize];
+        String[] survivorShipFunctions = new String[recordSize];
         TokenizedResolutionMethod[] tokenMethod = new TokenizedResolutionMethod[recordSize];
         double recordMatchThreshold = acceptableThreshold;// keep compatibility to older version.
         boolean isSwoosh = matchAlgo == RecordMatcherType.T_SwooshAlgorithm;
@@ -572,6 +574,8 @@ public abstract class AbstractRecordGrouping<TYPE> implements IRecordGrouping<TY
                 recordMatchThreshold = Double.valueOf(rcdMathThresholdEach);
 
             }
+            //Added TDQ-18347.
+            survivorShipFunctions[keyIdx] = recordMap.get(SurvivorshipUtils.SURVIVORSHIP_FUNCTION);
             keyIdx++;
         }
         IAttributeMatcher[] attributeMatcher = new IAttributeMatcher[recordSize];
@@ -604,6 +608,7 @@ public abstract class AbstractRecordGrouping<TYPE> implements IRecordGrouping<TY
         IRecordMatcher recordMatcher = RecordMatcherFactory.createMatcher(RecordMatcherType.simpleVSRMatcher);
         if (isSwoosh) {
             recordMatcher = new DQMFBRecordMatcher(recordMatchThreshold);
+            ((DQMFBRecordMatcher)recordMatcher).setSurvivorShipFunction(survivorShipFunctions);
         }
         recordMatcher.setRecordSize(recordSize);
         recordMatcher.setAttributeWeights(arrAttrWeights);
