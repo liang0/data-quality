@@ -207,4 +207,72 @@ public class MFBRecordMatcherTest {
         matchingResult = mfbRecordMatcher.getMatchingWeight(record4, record3);
         Assert.assertEquals("1.0", String.valueOf(matchingResult.getScores().get(0).score)); //$NON-NLS-1$
     }
+    
+    @Test
+    public void test_tdq18347_2() {
+        // init record
+    	String[] survivorShipFunctions = new String[2];
+    	survivorShipFunctions[0]=SurvivorShipAlgorithmEnum.CONCATENATE.getValue();
+    	survivorShipFunctions[1]=SurvivorShipAlgorithmEnum.MOST_COMMON.getValue();
+        Record record1 = new Record(null, 0, StringUtils.EMPTY);
+        Attribute attribute = new Attribute("0"); //$NON-NLS-1$
+        attribute.setValue("jinanjinan"); //$NON-NLS-1$
+        attribute.getValues().get("jinan").increment();//$NON-NLS-1$
+        record1.getAttributes().add(attribute);
+        attribute = new Attribute("1"); //$NON-NLS-1$
+        attribute.setValue("CCC"); //$NON-NLS-1$
+        attribute.getValues().get("CC").increment();//$NON-NLS-1$
+        record1.getAttributes().add(attribute);
+        
+        Record record2 = new Record(null, 0, StringUtils.EMPTY);
+        attribute = new Attribute("0"); //$NON-NLS-1$
+        attribute.setValue("jinanjinan"); //$NON-NLS-1$
+        record2.getAttributes().add(attribute);
+        attribute = new Attribute("1"); //$NON-NLS-1$
+        attribute.setValue("CC"); //$NON-NLS-1$
+        record2.getAttributes().add(attribute);
+        
+        Record record3 = new Record(null, 0, StringUtils.EMPTY);
+        attribute = new Attribute("0"); //$NON-NLS-1$
+        attribute.setValue("jinan"); //$NON-NLS-1$
+        record3.getAttributes().add(attribute);
+        attribute = new Attribute("1"); //$NON-NLS-1$
+        attribute.setValue("CC"); //$NON-NLS-1$
+        record3.getAttributes().add(attribute);
+        
+        Record record4 = new Record(null, 0, StringUtils.EMPTY);
+        attribute = new Attribute("0"); //$NON-NLS-1$
+        attribute.setValue("jinan"); //$NON-NLS-1$
+        record4.getAttributes().add(attribute);
+        attribute = new Attribute("1"); //$NON-NLS-1$
+        attribute.setValue("CCC"); //$NON-NLS-1$
+        record4.getAttributes().add(attribute);
+
+        // init Attribute matcher
+        IAttributeMatcher[] attributeMatchers = new IAttributeMatcher[] {
+                MFBAttributeMatcher.wrap(new ExactMatcher(), 1.0, 1.0, SubString.NO_SUBSTRING),
+                MFBAttributeMatcher.wrap(new ExactMatcher(), 1.0, 1.0, SubString.NO_SUBSTRING) };
+
+        MFBRecordMatcher mfbRecordMatcher = new MFBRecordMatcher(0.85d);
+        mfbRecordMatcher.setSurvivorShipFunction(survivorShipFunctions);
+        mfbRecordMatcher.setRecordSize(2);
+        mfbRecordMatcher.setAttributeMatchers(attributeMatchers);
+
+        MatchResult matchingResult = mfbRecordMatcher.getMatchingWeight(record1, record2);
+        Assert.assertEquals("0.0", String.valueOf(matchingResult.getScores().get(0).score)); //$NON-NLS-1$
+        Assert.assertEquals("1.0", String.valueOf(matchingResult.getScores().get(1).score));
+        
+        matchingResult = mfbRecordMatcher.getMatchingWeight(record1, record3);
+        Assert.assertEquals("1.0", String.valueOf(matchingResult.getScores().get(0).score)); //$NON-NLS-1$
+        Assert.assertEquals("1.0", String.valueOf(matchingResult.getScores().get(1).score));
+        
+        matchingResult = mfbRecordMatcher.getMatchingWeight(record4, record3);
+        Assert.assertEquals("1.0", String.valueOf(matchingResult.getScores().get(0).score)); //$NON-NLS-1$
+        Assert.assertEquals("0.0", String.valueOf(matchingResult.getScores().get(1).score));
+        
+        matchingResult = mfbRecordMatcher.getMatchingWeight(record1, record4);
+        Assert.assertEquals("1.0", String.valueOf(matchingResult.getScores().get(0).score)); //$NON-NLS-1$
+        Assert.assertEquals("1.0", String.valueOf(matchingResult.getScores().get(1).score));
+        Assert.assertEquals("1.0", String.valueOf(matchingResult.getNormalizedConfidence()));
+    }
 }
