@@ -17,6 +17,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,9 +31,8 @@ import org.talend.dataquality.statistics.datetime.SystemDateTimePatternManager;
 /**
  * Generator of date format groups to improve the performance.
  * Before, we have to try over all regex patterns in order to find out all possible matches.
- * Now, We made exlusive groups of patterns, and we just need to go over by group, and stops at the group where at least
- * one of
- * regexes matches the data.
+ * Now, We made exclusive groups of patterns, and we just need to go over by group,
+ * and stops at the group where at least one of regexes matches the data.
  */
 public class FormatGroupGenerator {
 
@@ -178,8 +180,9 @@ public class FormatGroupGenerator {
         // Date Formats
         String pathSeparator = "/"; //$NON-NLS-1$
         String targetPath = SystemDateTimePatternManager.class.getResource("DateRegexesGrouped.txt").getFile(); //$NON-NLS-1$
-        String srcPath = targetPath.replace("target" + pathSeparator + "classes",
-                "src" + pathSeparator + "main" + pathSeparator + "resources");
+        String srcPath = targetPath
+                .replace("target" + pathSeparator + "classes",
+                        "src" + pathSeparator + "main" + pathSeparator + "resources");
         IOUtils.write(sb.toString(), new FileOutputStream(new File(srcPath)));
         // Update DateRegexesGrouped.txt in "dataquality-sampling" at the same time.
         String samplingParent = new File(targetPath)
@@ -195,7 +198,7 @@ public class FormatGroupGenerator {
                 .getPath();
         String samplingPath = samplingParent + pathSeparator
                 + "../data-quality-ee/dataquality-datamasking/src/main/resources/org/talend/dataquality/datamasking/semantic/DateRegexesGrouped.txt"; //$NON-NLS-1$
-        IOUtils.write(sb.toString(), new FileOutputStream(new File(samplingPath)));
+        Files.write(Paths.get(samplingPath), sb.toString().getBytes(StandardCharsets.UTF_8));
     }
 }
 

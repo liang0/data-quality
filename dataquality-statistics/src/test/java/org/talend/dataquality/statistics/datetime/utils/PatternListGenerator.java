@@ -13,8 +13,11 @@
 package org.talend.dataquality.statistics.datetime.utils;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.chrono.IsoChronology;
@@ -28,8 +31,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.commons.io.IOUtils;
 import org.talend.dataquality.statistics.datetime.SystemDateTimePatternManager;
 
 /**
@@ -37,9 +40,9 @@ import org.talend.dataquality.statistics.datetime.SystemDateTimePatternManager;
  */
 public class PatternListGenerator {
 
-    private static Set<LocaledPattern> knownLocaledPatternList = new LinkedHashSet<LocaledPattern>();
+    private static final Set<LocaledPattern> knownLocaledPatternList = new LinkedHashSet<LocaledPattern>();
 
-    private static Set<String> knownPatternList = new LinkedHashSet<String>();
+    private static final Set<String> knownPatternList = new LinkedHashSet<String>();
 
     private final static ZonedDateTime ZONED_DATE_TIME =
             ZonedDateTime.of(1999, 3, 22, 5, 6, 7, 888, ZoneId.of("Europe/Paris"));
@@ -47,19 +50,19 @@ public class PatternListGenerator {
     private final static FormatStyle[] FORMAT_STYLES =
             new FormatStyle[] { FormatStyle.SHORT, FormatStyle.MEDIUM, FormatStyle.LONG, FormatStyle.FULL };
 
-    private static final boolean PRINT_DETAILED_RESULTS = false;
+    private static final boolean PRINT_DETAILED_RESULTS = true;
 
-    private static StringBuilder dateSampleFileTextBuilder = new StringBuilder();
+    private static final StringBuilder dateSampleFileTextBuilder = new StringBuilder();
 
-    private static StringBuilder datePatternFileTextBuilder = new StringBuilder();
+    private static final StringBuilder datePatternFileTextBuilder = new StringBuilder();
 
-    private static StringBuilder dateRegexFileTextBuilder = new StringBuilder();
+    private static final StringBuilder dateRegexFileTextBuilder = new StringBuilder();
 
-    private static StringBuilder timeSampleFileTextBuilder = new StringBuilder();
+    private static final StringBuilder timeSampleFileTextBuilder = new StringBuilder();
 
-    private static StringBuilder timePatternFileTextBuilder = new StringBuilder();
+    private static final StringBuilder timePatternFileTextBuilder = new StringBuilder();
 
-    private static StringBuilder timeRegexFileTextBuilder = new StringBuilder();
+    private static final StringBuilder timeRegexFileTextBuilder = new StringBuilder();
 
     /**
      * General locales to support. For each of them, we generate:
@@ -68,7 +71,7 @@ public class PatternListGenerator {
      * 3. LONG style date + LONG style time
      * 4. FULL style date + FULL style time
      */
-    private static Locale[] localeArray = new Locale[] { Locale.US, //
+    private static final Locale[] localeArray = new Locale[] { Locale.US, //
             Locale.FRANCE, //
             Locale.GERMANY, //
             Locale.UK, //
@@ -79,13 +82,15 @@ public class PatternListGenerator {
     };
 
     /**
-     * Important locales with which we need not only support their own pattern, but also the following combination in addition:
+     * Important locales with which we need not only support their own pattern, but also the following combination in
+     * addition:
      * 1. SHORT style date + MEDIUM style time
      * 2. MEDIUM style date + SHORT style time
-     * 3. all date patterns in OTHER_COMMON_PATTERNS_NEED_COMBINATION combined with the SHORT and MEDIUM style time of the
+     * 3. all date patterns in OTHER_COMMON_PATTERNS_NEED_COMBINATION combined with the SHORT and MEDIUM style time of
+     * the
      * following locales.
      */
-    private static Locale[] primaryLocaleArray = new Locale[] { Locale.US, //
+    private static final Locale[] primaryLocaleArray = new Locale[] { Locale.US, //
             Locale.FRANCE, //
             Locale.GERMANY, //
             Locale.UK, //
@@ -93,9 +98,10 @@ public class PatternListGenerator {
     };
 
     /**
-     * Add important date pattern here which need to be combined with SHORT and MEDIUM style time of the primary locales.
+     * Add important date pattern here which need to be combined with SHORT and MEDIUM style time of the primary
+     * locales.
      */
-    private static List<LocaledPattern> OTHER_COMMON_PATTERNS_NEED_COMBINATION = new ArrayList<LocaledPattern>() {
+    private static final List<LocaledPattern> OTHER_COMMON_PATTERNS_NEED_COMBINATION = new ArrayList<LocaledPattern>() {
 
         private static final long serialVersionUID = 1L;
         // NOTE: do not use patterns containing only one "y" for year part.
@@ -116,9 +122,10 @@ public class PatternListGenerator {
     };
 
     /**
-     * Add other single patterns here which do not need to be combined with SHORT and MEDIUM style time of the primary locales.
+     * Add other single patterns here which do not need to be combined with SHORT and MEDIUM style time of the primary
+     * locales.
      */
-    private static List<LocaledPattern> OTHER_COMMON_PATTERNS = new ArrayList<LocaledPattern>() {
+    private static final List<LocaledPattern> OTHER_COMMON_PATTERNS = new ArrayList<LocaledPattern>() {
 
         private static final long serialVersionUID = 1L;
         // NOTE: do not use patterns containing only one "y" for year part.
@@ -128,9 +135,9 @@ public class PatternListGenerator {
             add(new LocaledPattern("MMMM d yyyy", Locale.US, "OTHER", false));// January 18 2012
             add(new LocaledPattern("yyyy-MM-dd HH:mm:ss.S", Locale.US, "OTHER", true));// 2013-2-14 13:40:51.1
             add(new LocaledPattern("d/MMM/yyyy H:mm:ss Z", Locale.US, "OTHER", true));// 14/Feb/2013 13:40:51 +0100
-            add(new LocaledPattern("dd-MMM-yy hh.mm.ss.nnnnnnnnn a", //
-                    Locale.UK, "OTHER", true));// 18-Nov-86 01.00.00.000000000 AM
-            add(new LocaledPattern("EEE MMM dd HH:mm:ss z yyyy", Locale.US, "OTHER", true));// default format of java.util.Date
+            add(new LocaledPattern("dd-MMM-yy hh.mm.ss.nnnnnnnnn a", Locale.UK, "OTHER", true)); // default format of
+                                                                                                 // java.util.Date
+            add(new LocaledPattern("EEE MMM dd HH:mm:ss z yyyy", Locale.US, "OTHER", true));
             add(new LocaledPattern("dd/MMM/yy h:mm a", Locale.US, "OTHER", true)); // data time pattern from jira
             add(new LocaledPattern("yyyy/M/d", Locale.US, "OTHER", false)); // TDQ-13539
             add(new LocaledPattern("MM/dd/yyyy hh:mm:ss a", Locale.US, "OTHER", true)); // TDQ-11557
@@ -138,10 +145,7 @@ public class PatternListGenerator {
         }
     };
 
-    private static List<LocaledPattern> processBaseDateTimePatternsByLocales() {
-
-        // Set<String> dateTimePatternsList = new LinkedHashSet<String>();
-        List<LocaledPattern> dateTimePatterns = new ArrayList<LocaledPattern>();
+    private static void processBaseDateTimePatternsByLocales() {
 
         for (FormatStyle style : FORMAT_STYLES) {
             if (PRINT_DETAILED_RESULTS) {
@@ -166,14 +170,9 @@ public class PatternListGenerator {
             getFormatByStyle(FormatStyle.MEDIUM, FormatStyle.SHORT, true, true, locale, false);
         }
 
-        dateTimePatterns.removeAll(knownPatternList);
-        // return new ArrayList<String>(dateTimePatterns);
-        return dateTimePatterns;
-
     }
 
-    private static List<LocaledPattern> processBaseTimePatternsByLocales() {
-        List<LocaledPattern> timePatterns = new ArrayList<LocaledPattern>();
+    private static void processBaseTimePatternsByLocales() {
         for (FormatStyle style : FORMAT_STYLES) {
             if (PRINT_DETAILED_RESULTS) {
                 System.out.println("--------------------Time Style: " + style + "-----------------------");
@@ -182,13 +181,14 @@ public class PatternListGenerator {
                 getFormatByStyle(style, style, false, true, locale, true); // Time Only
             }
         }
-        return timePatterns;
     }
 
     private static void getFormatByStyle(FormatStyle dateStyle, FormatStyle timeStyle, boolean isDateRequired,
             boolean isTimeRequired, Locale locale, boolean keepLongMonthAndSpecificChars) {
-        String pattern = DateTimeFormatterBuilder.getLocalizedDateTimePattern(//
-                isDateRequired ? dateStyle : null, isTimeRequired ? timeStyle : null, IsoChronology.INSTANCE, locale);//
+        String pattern = DateTimeFormatterBuilder
+                .getLocalizedDateTimePattern(//
+                        isDateRequired ? dateStyle : null, isTimeRequired ? timeStyle : null, IsoChronology.INSTANCE,
+                        locale);//
 
         // ignore patterns with long month for additional languages
         if (!keepLongMonthAndSpecificChars && (pattern.contains("MMMM") || pattern.contains("MMM")
@@ -286,7 +286,10 @@ public class PatternListGenerator {
         // 6. ISO_LOCAL_DATE_TIME (removed because they are duplicated with existing patterns)
         // 7. ISO_OFFSET_DATE
         patternList.add(new LocaledPattern("yyyy-MM-ddXXX", Locale.US, "ISO_OFFSET_DATE", false));
+        patternList.add(new LocaledPattern("yyyy-MM-ddXX", Locale.US, "ISO_OFFSET_DATE", false));
+        patternList.add(new LocaledPattern("yyyy-MM-ddX", Locale.US, "ISO_OFFSET_DATE", false));
         // 8. ISO_OFFSET_DATE_TIME
+        patternList.add(new LocaledPattern("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US, "ISO_DATE_TIME", true));
         patternList.add(new LocaledPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US, "ISO_OFFSET_DATE_TIME", true));
         patternList.add(new LocaledPattern("yyyy-MM-dd'T'HH:mm:ss,SSSXXX", Locale.US, "ISO_OFFSET_DATE_TIME", true)); // TDQ-16796
         patternList.add(new LocaledPattern("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US, "ISO_OFFSET_DATE_TIME", true));
@@ -299,10 +302,12 @@ public class PatternListGenerator {
         patternList.add(new LocaledPattern("YYYY'W'wc", Locale.US, "ISO", false)); // compact form
         patternList.add(new LocaledPattern("YYYY-'W'w-c", Locale.US, "ISO", false)); // extended form
         // 11. ISO_ZONED_DATE_TIME
-        patternList.add(
-                new LocaledPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX'['VV']'", Locale.US, "ISO_ZONED_DATE_TIME", true));
-        patternList.add(
-                new LocaledPattern("yyyy-MM-dd'T'HH:mm:ss,SSSXXX'['VV']'", Locale.US, "ISO_ZONED_DATE_TIME", true)); // TDQ-16796
+        patternList
+                .add(new LocaledPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX'['VV']'", Locale.US, "ISO_ZONED_DATE_TIME",
+                        true));
+        patternList
+                .add(new LocaledPattern("yyyy-MM-dd'T'HH:mm:ss,SSSXXX'['VV']'", Locale.US, "ISO_ZONED_DATE_TIME",
+                        true)); // TDQ-16796
         patternList.add(new LocaledPattern("yyyy-MM-dd'T'HH:mm:ssXXX'['VV']'", Locale.US, "ISO_ZONED_DATE_TIME", true));
         patternList
                 .add(new LocaledPattern("yyyy-MM-dd HH:mm:ss.SSSXXX'['VV']'", Locale.US, "ISO_ZONED_DATE_TIME", true));
@@ -361,8 +366,7 @@ public class PatternListGenerator {
     private static String getFormattedDateTime(String pattern, Locale locale) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern, locale);
         try {
-            String formattedDateTime = ZONED_DATE_TIME.format(formatter);
-            return formattedDateTime;
+            return ZONED_DATE_TIME.format(formatter);
         } catch (Throwable t) {
             return t.getMessage();
         }
@@ -386,14 +390,16 @@ public class PatternListGenerator {
 
             for (Locale locale : primaryLocaleArray) {
 
-                String patternShort = DateTimeFormatterBuilder.getLocalizedDateTimePattern(//
-                        null, FormatStyle.SHORT, IsoChronology.INSTANCE, locale);//
+                String patternShort = DateTimeFormatterBuilder
+                        .getLocalizedDateTimePattern(//
+                                null, FormatStyle.SHORT, IsoChronology.INSTANCE, locale);//
                 LocaledPattern combinedShortLP =
                         new LocaledPattern(lp.pattern + " " + patternShort, locale, FormatStyle.SHORT.name(), true);
                 addLocaledPattern(combinedShortLP);
 
-                String patternMedium = DateTimeFormatterBuilder.getLocalizedDateTimePattern(//
-                        null, FormatStyle.MEDIUM, IsoChronology.INSTANCE, locale);//
+                String patternMedium = DateTimeFormatterBuilder
+                        .getLocalizedDateTimePattern(//
+                                null, FormatStyle.MEDIUM, IsoChronology.INSTANCE, locale);//
                 LocaledPattern combinedMediumLP =
                         new LocaledPattern(lp.pattern + " " + patternMedium, locale, FormatStyle.MEDIUM.name(), true);
                 addLocaledPattern(combinedMediumLP);
@@ -408,7 +414,6 @@ public class PatternListGenerator {
 
         // 3. ISO and RFC DateTimePatterns
         processISOAndRFCDateTimePatternList();
-        // knownPatternList.addAll(isoPatternList);
         int isoPatternCount = knownLocaledPatternList.size() - currentLocaledPatternSize;
         if (PRINT_DETAILED_RESULTS) {
             System.out.println("#DateTimePattern(ISO&RFC) = " + isoPatternCount + "\n");
@@ -417,12 +422,10 @@ public class PatternListGenerator {
 
         // 4. Additional Localized DateTimePatterns (java8 DateTimeFormatterBuilder)
         processAdditionalDateTimePatternsByLocales();
-        // knownPatternList.addAll(additionalPatternList);
         int additionalPatternCount = knownLocaledPatternList.size() - currentLocaledPatternSize;
         if (PRINT_DETAILED_RESULTS) {
             System.out.println("#additionalPatternList = " + additionalPatternCount + "\n");
         }
-        currentLocaledPatternSize = knownLocaledPatternList.size();
 
         if (PRINT_DETAILED_RESULTS) {
             System.out.println("#Total = " + knownLocaledPatternList.size() + //
@@ -431,6 +434,10 @@ public class PatternListGenerator {
                     ", #additionalPatterns = " + additionalPatternCount + ")\n");//
         }
 
+        writeDates();
+    }
+
+    private static void writeDates() throws IOException {
         // table header
         dateSampleFileTextBuilder.append("Sample\tPattern\tLocale\tFormatStyle\tIsWithTime\n");
 
@@ -454,20 +461,9 @@ public class PatternListGenerator {
                     .append("\n");
         }
 
-        // Date Formats
-        String path = SystemDateTimePatternManager.class.getResource("DateFormats.txt").getFile().replace(
-                "target" + File.separator + "classes", "src" + File.separator + "main" + File.separator + "resources");
-        IOUtils.write(datePatternFileTextBuilder.toString(), new FileOutputStream(new File(path)));
-
-        // Date Regexes
-        path = SystemDateTimePatternManager.class.getResource("DateRegexes.txt").getFile().replace(
-                "target" + File.separator + "classes", "src" + File.separator + "main" + File.separator + "resources");
-        IOUtils.write(dateRegexFileTextBuilder.toString(), new FileOutputStream(new File(path)));
-
-        // Date Samples
-        path = SystemDateTimePatternManager.class.getResource("DateSampleTable.txt").getFile().replace(
-                "target" + File.separator + "classes", "src" + File.separator + "test" + File.separator + "resources");
-        IOUtils.write(dateSampleFileTextBuilder.toString(), new FileOutputStream(new File(path)));
+        writeResource("main", "DateFormats.txt", datePatternFileTextBuilder.toString());
+        writeResource("main", "DateRegexes.txt", dateRegexFileTextBuilder.toString());
+        writeResource("test", "DateSampleTable.txt", dateSampleFileTextBuilder.toString());
 
         // generate grouped Date Regexes
         FormatGroupGenerator.generateDateRegexGroups();
@@ -516,20 +512,20 @@ public class PatternListGenerator {
                     .append("\n");
         }
 
-        // Time Formats
-        String path = SystemDateTimePatternManager.class.getResource("TimeFormats.txt").getFile().replace(
-                "target" + File.separator + "classes", "src" + File.separator + "main" + File.separator + "resources");
-        IOUtils.write(timePatternFileTextBuilder.toString(), new FileOutputStream(new File(path)));
+        writeResource("main", "TimeFormats.txt", timePatternFileTextBuilder.toString());
+        writeResource("main", "TimeRegexes.txt", timeRegexFileTextBuilder.toString());
+        writeResource("test", "TimeSampleTable.txt", timeSampleFileTextBuilder.toString());
+    }
 
-        // Time Regexes
-        path = SystemDateTimePatternManager.class.getResource("TimeRegexes.txt").getFile().replace(
-                "target" + File.separator + "classes", "src" + File.separator + "main" + File.separator + "resources");
-        IOUtils.write(timeRegexFileTextBuilder.toString(), new FileOutputStream(new File(path)));
-
+    private static void writeResource(String scope, String resourceName, String resourceContent) throws IOException {
         // Time Samples
-        path = SystemDateTimePatternManager.class.getResource("TimeSampleTable.txt").getFile().replace(
-                "target" + File.separator + "classes", "src" + File.separator + "test" + File.separator + "resources");
-        IOUtils.write(timeSampleFileTextBuilder.toString(), new FileOutputStream(new File(path)));
+        Path path = Paths
+                .get(SystemDateTimePatternManager.class
+                        .getResource(resourceName)
+                        .getFile()
+                        .replace("target" + File.separator + "classes",
+                                "src" + File.separator + "test" + File.separator + "resources"));
+        Files.write(path, resourceContent.getBytes(StandardCharsets.UTF_8));
     }
 
     public static void main(String[] args) throws IOException {
