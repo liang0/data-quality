@@ -210,7 +210,7 @@ public class MFBRecordMatcherTest {
     
     @Test
     public void test_tdq18347_2() {
-        // init record
+        // 2 different functions and 2 matchers
     	String[] survivorShipFunctions = new String[2];
     	survivorShipFunctions[0]=SurvivorShipAlgorithmEnum.CONCATENATE.getValue();
     	survivorShipFunctions[1]=SurvivorShipAlgorithmEnum.MOST_COMMON.getValue();

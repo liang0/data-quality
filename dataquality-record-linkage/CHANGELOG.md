@@ -18,6 +18,10 @@ N/A
 ### Security
 N/A
 
+## [8.1.1] - 2020-05-22
+### Fixed
+- TDQ-18347 Modify the CONcatenate function when matching: only use the original values to match, but not the concatenated value.
+
 ## [8.1.0] - 2020-03-13
 
 ## [8.0.0] - 2020-02-03
